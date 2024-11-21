@@ -11,36 +11,36 @@ module.exports = {
 
         let urls = msg.match(regex);
 
-        if (!urls) return;
+        if (!urls) return; //if theres no urls dw bout it
 
         urls.forEach(m => {
             let clean = sanitize(m);
             msg = msg.replace(m, clean); //replace dirty url with clean url
         })
         
-        if(msg === message.content) return;
+        if(msg === message.content) return; //if no sanitation takes place, dw bout it
         
+        //webhook tomfoolery to mimic user
         let webhook = await message.channel.fetchWebhooks();
         let number = randomNumber(1, 2);
         webhook = webhook.find(x => x.name === "SURL" + number);
 
-        if (!webhook) {
+        if (!webhook) { //create webhook if one doesn't already exist
             webhook = await message.channel.createWebhook({
                 name: "SURL" + number,
                 avatar: message.author.displayAvatarURL({ dynamic: true })
             });
         }
 
-        await webhook.edit({
-            name: message.member.nickname ? message.member.nickname : message.author.displayName,
+        await webhook.edit({ //set webhook to users name and pfp
+            name: message.member.nickname ? message.member.nickname : message.author.displayName, //use server nickname, if none user display name (or username)
             avatar: message.author.displayAvatarURL({ dynamic: true })
         })
         
-        //const channel = message.client.channels.cache.get(message.channelId); //grab channel to send replacement msg in 
         webhook.send(msg);
         message.delete();
 
-        await webhook.edit({
+        await webhook.edit({ //set webhook back to default so it can be found again when the cycle loops back around
             name: `SURL` + number,
             avatar: message.client.user.displayAvatarURL({ dynamic: true })
         });
@@ -71,7 +71,7 @@ module.exports = {
                     break;
                 case dirtyLink.startsWith('https://www.amazon.com/') && dirtyLink.includes("/dp/"): 
                     cleanLinkArr = dirtyLink.split("/");
-                    //set smth false, look for dp; if dp found, switch smth to true; if smth is true, leave loop
+                    //look for dp; if dp found, switch to true & it'll grab the value after dp before setting false again
                     let dpFound = false;
                     cleanLinkArr.forEach(m => {
                         if(dpFound == true){
@@ -81,7 +81,6 @@ module.exports = {
                         }
                         if(m === "dp") dpFound = true;
                     })
-                    //cleanLink = cleanLinkArr[cleanLinkArr.length - 1]; //second to last value of the array
                     sanilink = shoppin + cleanLink;
                     break;
                 default:
